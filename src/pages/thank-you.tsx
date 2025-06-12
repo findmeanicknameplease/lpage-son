@@ -1,7 +1,7 @@
 // src/pages/thank-you.tsx
 
 import React from 'react';
-import { Link } from 'react-router-dom'; // Use Link for fast, client-side navigation
+import { Link } from 'react-router-dom';
 import claxisLogo from '../assets/claxis-logo.png'; // Make sure path is correct
 import { CheckCircle } from 'lucide-react';
 
@@ -12,6 +12,7 @@ const ThankYouPage = () => {
       <header className="bg-white/50 backdrop-blur-md border-b border-black/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link to="/" className="flex items-center space-x-3 w-fit">
+            {/* Use standard <img> tag */}
             <img src={claxisLogo} alt="Claxis Logo" className="h-10 w-auto" />
             <span className="text-2xl font-bold text-[#0e1116]">Claxis</span>
           </Link>
