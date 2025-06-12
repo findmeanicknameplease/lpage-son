@@ -1,43 +1,45 @@
+// src/pages/thank-you.tsx
+
 import React from 'react';
-import { CheckCircle, Download } from 'lucide-react';
+import { Link } from 'react-router-dom'; // Use Link for fast, client-side navigation
+import claxisLogo from '../assets/claxis-logo.png'; // Make sure path is correct
+import { CheckCircle } from 'lucide-react';
 
-// This is a standalone component for your /thank-you page.
-function ThankYouPage() {
+const ThankYouPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#E9E5F3] to-[#F5F5F5] flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center animate-fade-in">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-        <h1 className="text-4xl font-bold text-[#0e1116] mb-4">You're on the list!</h1>
-        <p className="text-[#0e1116]/70 text-lg mb-8">
-            Thank you for your interest. We've received your submission and will be in touch.
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-[#E9E5F3] to-[#F5F5F5] text-[#0e1116] font-sans">
+      {/* Consistent Header */}
+      <header className="bg-white/50 backdrop-blur-md border-b border-black/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link to="/" className="flex items-center space-x-3 w-fit">
+            <img src={claxisLogo} alt="Claxis Logo" className="h-10 w-auto" />
+            <span className="text-2xl font-bold text-[#0e1116]">Claxis</span>
+          </Link>
+        </div>
+      </header>
 
-        <div className="bg-[#e9e5f3]/40 rounded-xl p-6 space-y-6">
-          <div>
-            <h3 className="font-bold text-lg mb-2">Get a Head Start:</h3>
-            <a 
-              href="/whatsapp-salon-guide.pdf" // IMPORTANT: Place your PDF guide in the `/public` folder of your project
-              download 
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#0e1116] text-white rounded-lg font-semibold hover:bg-[#0e1116]/80 transition-all"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download: WhatsApp Booking Guide</span>
-            </a>
-          </div>
-          <div className="border-t border-black/10 pt-6">
-            <h3 className="font-bold text-lg mb-2">What happens next?</h3>
-            <p className="text-[#0e1116]/70">
-                We'll notify you first when early access opens in <span className="font-semibold">Q2 2025</span>.
+      {/* Main Content */}
+      <main className="py-16 sm:py-24">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-black/5 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#0e1116] mb-4">
+              You're on the list!
+            </h1>
+            <p className="text-lg text-[#0e1116]/70 mb-8">
+              Thank you for joining the waitlist. We're excited to have you on board. We'll send you an email as soon as we're ready to launch.
             </p>
+            <Link
+              to="/"
+              className="px-8 py-3 bg-[#d1ecc5] hover:bg-[#bde4b0] text-[#0e1116] rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 inline-block"
+            >
+              Back to Homepage
+            </Link>
           </div>
         </div>
-
-        <a href="/" className="text-sm text-[#0e1116]/60 hover:underline mt-8 inline-block">
-            ← Back to homepage
-        </a>
-      </div>
+      </main>
     </div>
   );
-}
+};
 
 export default ThankYouPage;
