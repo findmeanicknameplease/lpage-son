@@ -5,14 +5,41 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- === START: META TAGS FOR SOCIAL SHARING (PASTE THIS ENTIRE BLOCK) === -->
+
+    <!-- Primary Meta Tags -->
     <title>Data Deletion Instructions - Claxis</title>
-    <!-- Link to your main CSS file, which Vite will generate -->
+    <meta name="title" content="Data Deletion Instructions - Claxis">
+    <meta name="description" content="Official instructions on how to request deletion of your data from Claxis services.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://getclaxis.com/data-deletion.html">
+    <meta property="og:title" content="Data Deletion Instructions - Claxis">
+    <meta property="og:description" content="Official instructions on how to request deletion of your data from Claxis services.">
+    
+    <!-- This is the explicit image tag that fixes the warning -->
+    <!-- It must be an absolute URL pointing to the image in your /public folder -->
+    <meta property="og:image" content="https://getclaxis.com/og-image.png"> 
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://getclaxis.com/data-deletion.html">
+    <meta property="twitter:title" content="Data Deletion Instructions - Claxis">
+    <meta property="twitter:description" content="Official instructions on how to request deletion of your data from Claxis services.">
+    <meta property="twitter:image" content="https://getclaxis.com/og-image.png">
+
+    <!-- === END: META TAGS FOR SOCIAL SHARING === -->
+
+    <!-- Link to your main CSS file, which Vite will process -->
     <link rel="stylesheet" href="/src/index.css">
   </head>
   <body>
-    <!-- This is a separate root element for this page -->
+    <!-- This is the root element where your React component will be mounted -->
     <div id="deletion-root"></div>
-    <!-- This points to a new, dedicated script for this page -->
+    
+    <!-- This points to the dedicated script for this page -->
     <script type="module" src="/src/data-deletion-main.tsx"></script>
   </body>
 </html>
