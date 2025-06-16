@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, MessageCircle, Shield, CheckCircle, ArrowRight, Star, Lock, Phone, Mail, MapPin, TrendingUp, DollarSign, HeartHandshake, Award, Menu, X, Loader2, Download, Building } from 'lucide-react';
+import { Calendar, MessageCircle, Shield, CheckCircle, ArrowRight, Star, Lock, Phone, Mail,  TrendingUp, DollarSign, HeartHandshake, Award, Menu, X, Loader2,  Building } from 'lucide-react';
 
 // Import your logo
 import claxisLogo from './assets/claxis-logo.png'; 
@@ -181,7 +181,8 @@ function App() {
                       <div className="space-y-2 text-white/60">
                           <div className="flex items-center space-x-2">
                               <Building className="w-4 h-4" />
-                              <span className="text-sm">Eat Sleep Shop Repeat, LLC.</span>
+                              <span className="text-sm">Eat Sleep Shop Repeat, LLC,</span>
+                              <span className="text-sm">30 North Gould Street Ste N, Sheridan, 82801, WY</span>
                           </div>
                           
                           <div className="flex items-center space-x-2">
@@ -192,7 +193,7 @@ function App() {
                           </div>
                           <div className="flex items-center space-x-2">
                               <Phone className="w-4 h-4" />
-                              <span className="text-sm">1-800-555-0199</span>
+                              <span className="text-sm">+905433521189</span>
                           </div>
                       </div>
                   </div>
