@@ -3,113 +3,80 @@ import pysrt
 import argparse
 import os
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 # --- Configuration ---
-MODEL_ID = "ByteDance-Seed/Seed-X-Instruct-7B"
+# A model specifically for translation.
+MODEL_ID = "facebook/nllb-200-distilled-600M"
 
-def setup_model_and_tokenizer():
+def setup_pipeline():
     """
-    Sets up and loads the quantized model and tokenizer.
+    Sets up the translation pipeline with the specified NLLB model.
+    This is the standard and most efficient way to use these models.
     """
     print(f"Loading model: {MODEL_ID}")
     print("This may take a few minutes depending on your connection speed...")
 
-    # Configuration for 4-bit quantization
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
-    )
-
-    # Load the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-    
-    # Load the model with quantization
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_ID,
-        quantization_config=quantization_config,
-        torch_dtype=torch.bfloat16, # Use bfloat16 for computation
-        device_map="auto",         # Automatically map model to available GPU
-        trust_remote_code=True     # Required by this model
+    # For NLLB, we use the high-level pipeline for simplicity and efficiency.
+    # It handles batching, tokenization, and decoding automatically.
+    # NLLB requires specific language codes.
+    # src_lang = "eng_Latn" (English, Latin script)
+    # tgt_lang = "tur_Latn" (Turkish, Latin script)
+    translator = pipeline(
+        "translation",
+        model=MODEL_ID,
+        tokenizer=MODEL_ID,
+        src_lang="eng_Latn",
+        tgt_lang="tur_Latn",
+        device_map="auto" # Automatically use the GPU
     )
     
-    print("Model and tokenizer loaded successfully.")
-    return model, tokenizer
+    print("Translation pipeline loaded successfully.")
+    return translator
 
-def build_prompt(text):
+def translate_in_batches(translator, subs, batch_size=16):
     """
-    Constructs the instruction prompt for the model.
-    A good prompt is crucial for instruction-tuned models.
+    Translates subtitles in batches for much greater speed.
     """
-    # This prompt structure clearly tells the model its role and task.
-    prompt = (
-        f"You are a professional subtitle translator. "
-        f"Translate the following English text to Turkish. "
-        f"Keep the meaning and tone the same. "
-        f"Output ONLY the translated text, without any additional explanations, comments, or quotation marks.\n\n"
-        f"English: \"{text}\"\n"
-        f"Turkish:"
-    )
-    return prompt
-
-def translate_text(model, tokenizer, text_to_translate):
-    """
-    Translates a single piece of text using the loaded model.
-    """
-    if not text_to_translate.strip():
-        return "" # Return empty string if input is empty
-
-    # Build the full prompt for the model
-    prompt = build_prompt(text_to_translate)
+    # Extract just the text from the subtitle objects
+    original_texts = [sub.text.replace('\n', ' ') for sub in subs]
     
-    # Prepare model inputs
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-
-    # Generate the translation
-    # We set max_new_tokens to avoid overly long outputs. Adjust if needed.
-    # The length of the input prompt is added to max_length to ensure enough space for the translation.
-    output = model.generate(
-        **inputs,
-        max_new_tokens=len(text_to_translate.split()) * 3 + 20, # Heuristic for output length
-        do_sample=False, # Use greedy decoding for more consistent translations
-        pad_token_id=tokenizer.eos_token_id # Set pad token to end-of-sentence token
-    )
-
-    # Decode the output and clean it up
-    full_output_text = tokenizer.decode(output[0], skip_special_tokens=True)
+    translated_texts = []
     
-    # Isolate just the translated part by splitting after the prompt's end
-    try:
-        translated_text = full_output_text.split("Turkish:")[1].strip()
-        # Remove potential quotation marks the model might add
-        if translated_text.startswith('"') and translated_text.endswith('"'):
-            translated_text = translated_text[1:-1]
-        return translated_text
-    except IndexError:
-        # If the model output format is unexpected, return a placeholder
-        print(f"\n[Warning] Could not parse model output: {full_output_text}")
-        return "[Translation Error]"
+    # Use tqdm to show a progress bar over the batches
+    print(f"\nTranslating in batches of {batch_size}...")
+    for i in tqdm(range(0, len(original_texts), batch_size), desc="Translating Batches"):
+        batch = original_texts[i:i+batch_size]
+        
+        # The pipeline handles the translation for the entire batch at once
+        translated_batch = translator(batch)
+        
+        # Extract the translated text from the pipeline's output
+        translated_texts.extend([item['translation_text'] for item in translated_batch])
+        
+    # Update the subtitle objects with the new translated text
+    for i, sub in enumerate(subs):
+        # Restore newlines if they were present in the original
+        restored_text = translated_texts[i].replace(' ', '\n', sub.text.count('\n'))
+        sub.text = restored_text
 
 def main(input_file, output_file):
     """
     Main function to orchestrate the translation process.
     """
-    # Check if input file exists
     if not os.path.exists(input_file):
         print(f"Error: Input file not found at '{input_file}'")
         return
 
-    # Load the model and tokenizer
-    model, tokenizer = setup_model_and_tokenizer()
+    # Load the specialized translation pipeline
+    translator = setup_pipeline()
 
-    # Load the SRT file using pysrt
+    # Load the SRT file
     print(f"\nLoading subtitle file: {input_file}")
     try:
         subs = pysrt.open(input_file, encoding='utf-8')
     except Exception as e:
-        print(f"Error reading SRT file: {e}")
-        print("Trying with 'latin-1' encoding as a fallback...")
+        print(f"Error reading SRT file: {e}. Trying 'latin-1' encoding...")
         try:
             subs = pysrt.open(input_file, encoding='latin-1')
         except Exception as e_fallback:
@@ -118,33 +85,20 @@ def main(input_file, output_file):
     
     print(f"Found {len(subs)} subtitle entries to translate.")
 
-    # Main translation loop with a progress bar and safety save
+    # Translate all subtitles using the efficient batching function
     try:
-        for i in tqdm(range(len(subs)), desc="Translating Subtitles"):
-            original_text = subs[i].text
-            
-            # Replace common SRT formatting with spaces for better translation
-            cleaned_text = original_text.replace('\n', ' ')
-            
-            # Translate the cleaned text
-            translated_text = translate_text(model, tokenizer, cleaned_text)
-            
-            # Restore newlines if they were present in the original
-            subs[i].text = translated_text.replace(' ', '\n', original_text.count('\n'))
-
+        translate_in_batches(translator, subs)
     except KeyboardInterrupt:
         print("\n\nProcess interrupted by user. Saving partial progress...")
     finally:
-        # Save the translated subtitles to the output file
-        # Using utf-8 is essential for Turkish characters
+        # Save the translated subtitles
         print(f"\nSaving translated subtitles to: {output_file}")
         subs.save(output_file, encoding='utf-8')
         print("Translation complete. File saved.")
 
 
 if __name__ == "__main__":
-    # Set up command-line argument parsing
-    parser = argparse.ArgumentParser(description="Translate an English SRT subtitle file to Turkish using Seed-X-Instruct-7B.")
+    parser = argparse.ArgumentParser(description="Translate an English SRT file to Turkish using an NLLB model.")
     parser.add_argument("input_file", help="The path to the input English SRT file.")
     parser.add_argument("output_file", help="The path where the translated Turkish SRT file will be saved.")
     
