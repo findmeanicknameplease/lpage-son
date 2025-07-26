@@ -3,40 +3,35 @@ import pysrt
 import argparse
 import os
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from transformers import pipeline
 
 # --- Configuration ---
-# A model specifically for translation.
-MODEL_ID = "facebook/nllb-200-distilled-600M"
+# A highly efficient model from Helsinki-NLP, specialized for English-to-Turkish translation.
+MODEL_ID = "Helsinki-NLP/opus-mt-tc-big-en-tr"
 
 def setup_pipeline():
     """
-    Sets up the translation pipeline with the specified NLLB model.
-    This is the standard and most efficient way to use these models.
+    Sets up the translation pipeline with the specified Opus-MT model.
     """
     print(f"Loading model: {MODEL_ID}")
-    print("This may take a few minutes depending on your connection speed...")
+    print("This model is smaller and should load quickly.")
 
-    # For NLLB, we use the high-level pipeline for simplicity and efficiency.
-    # It handles batching, tokenization, and decoding automatically.
-    # NLLB requires specific language codes.
-    # src_lang = "eng_Latn" (English, Latin script)
-    # tgt_lang = "tur_Latn" (Turkish, Latin script)
+    # For specialized models like Opus-MT, we don't need to specify the languages.
+    # The pipeline infers them from the model's configuration.
     translator = pipeline(
         "translation",
         model=MODEL_ID,
         tokenizer=MODEL_ID,
-        src_lang="eng_Latn",
-        tgt_lang="tur_Latn",
         device_map="auto" # Automatically use the GPU
     )
     
     print("Translation pipeline loaded successfully.")
     return translator
 
-def translate_in_batches(translator, subs, batch_size=16):
+def translate_in_batches(translator, subs, batch_size=32):
     """
     Translates subtitles in batches for much greater speed.
+    Opus models are very fast, so we can often use a larger batch size.
     """
     # Extract just the text from the subtitle objects
     original_texts = [sub.text.replace('\n', ' ') for sub in subs]
@@ -98,7 +93,7 @@ def main(input_file, output_file):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Translate an English SRT file to Turkish using an NLLB model.")
+    parser = argparse.ArgumentParser(description="Translate an English SRT file to Turkish using a Helsinki-NLP Opus-MT model.")
     parser.add_argument("input_file", help="The path to the input English SRT file.")
     parser.add_argument("output_file", help="The path where the translated Turkish SRT file will be saved.")
     
