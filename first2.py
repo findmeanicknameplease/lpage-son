@@ -1,8 +1,17 @@
-import pandas as pd
 import numpy as np
 
 # load the small sample
-df = pd.read_csv("first20k.csv")
+import pandas as pd
+df = pd.read_csv(
+    "first20k.csv",
+    engine="python",      # more tolerant than the C engine
+    sep=",",
+    quotechar='"',
+    doublequote=True,
+    escapechar="\\",      # if backslashes are used to escape quotes
+    on_bad_lines="warn"   # or "skip" to silently drop malformed rows
+)
+print(df.shape)
 
 print("\n=== Columns ===")
 print(df.columns.tolist())
